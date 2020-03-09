@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,11 +35,28 @@ class Program
 
     private static string[] SortCSharp(string[] lines)
     {
-        return lines;
+        var header = new List<string>();
+        var body = new List<string>();
+        var footer = new List<string>();
+        
+        
+        
+        return Join(header, body, footer);
     }
 
     private static string[] SortResx(string[] lines)
     {
-        return lines;
+        var header = new List<string>();
+        var body = new List<string>();
+        var footer = new List<string>();
+        
+        return Join(header, body, footer);
+    }
+
+    private static string[] Join(List<string> header, List<string> body, List<string> footer)
+    {
+        header.AddRange(body);
+        header.AddRange(footer);
+        return header.ToArray();
     }
 }
