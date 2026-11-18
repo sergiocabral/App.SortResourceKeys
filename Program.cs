@@ -6,8 +6,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
+//***********************************************************************************************************
+/// <summary>
+/// Sorts resource keys in a source file and writes the sorted result.
+/// </summary>
+//***********************************************************************************************************
 class Program
 {
+    //=======================================================================================================
+    /// <summary>
+    /// Main method of the application, scans all files and transforms them according to plan
+    /// </summary>
+    //=======================================================================================================
     static void Main()
     {
         foreach (var fileResx in new DirectoryInfo(Environment.CurrentDirectory).GetFiles())
@@ -37,6 +47,13 @@ class Program
         }
     }
 
+    //=======================================================================================================
+    /// <summary>
+    /// Determines encoding of the input file, assumes it should be at least UTF-8 without signature
+    /// </summary>
+    /// <param name="filePath">Path of the file</param>
+    /// <returns>Assumed encoding of the input file</returns>
+    //=======================================================================================================
     private static Encoding DetermineEncoding(string filePath)
     {
         var fileBytes = File.ReadAllBytes(filePath);
@@ -84,6 +101,10 @@ class Program
         return new UTF8Encoding(false);
     }
 
+    //=======================================================================================================
+    /// <summary>
+    /// Identification for part of C# file
+    /// </summary>
     private enum Mode
     {
         Header,
@@ -91,6 +112,13 @@ class Program
         Footer
     }
 
+    //=======================================================================================================
+    /// <summary>
+    /// Sorts C# file (Designer.cs)
+    /// </summary>
+    /// <param name="lines">Original lines</param>
+    /// <returns>Sorted lines</returns>
+    //=======================================================================================================
     private static string[] SortCSharp(string[] lines)
     {
         var header = new List<string>();
@@ -154,6 +182,13 @@ class Program
         return Join(header, body, footer);
     }
 
+    //=======================================================================================================
+    /// <summary>
+    /// Sorts Resx file
+    /// </summary>
+    /// <param name="content">Original content</param>
+    /// <returns>Sorted Resx</returns>
+    //=======================================================================================================
     private static string SortResx(string content)
     {
         var xml = new XmlDocument();
@@ -191,7 +226,19 @@ class Program
         return content;
     }
 
-    private static string[] Join(List<string> header, List<List<string>> body, List<string> footer)
+    //=======================================================================================================
+    /// <summary>
+    /// Combines the header, sorted body blocks, and footer into one result.
+    /// </summary>
+    /// <param name="header">The lines that appear before the sortable blocks.</param>
+    /// <param name="body">The blocks to sort and append to the result.</param>
+    /// <param name="footer">The lines that appear after the sortable blocks.</param>
+    /// <returns>An array containing the complete sorted file.</returns>
+    //=======================================================================================================
+    private static string[] Join(
+        List<string> header,
+        List<List<string>> body,
+        List<string> footer)
     {
         body.Sort((list1, list2) =>
         {
@@ -224,3 +271,8 @@ class Program
         return header.ToArray();
     }
 }
+
+
+
+
+
