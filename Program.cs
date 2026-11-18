@@ -12,27 +12,76 @@ class Program
     {
         foreach (var fileResx in new DirectoryInfo(Environment.CurrentDirectory).GetFiles())
         {
-            if (!string.Equals(fileResx.Extension, ".resx", StringComparison.InvariantCultureIgnoreCase)) 
+            if (!string.Equals(fileResx.Extension, ".resx", StringComparison.InvariantCultureIgnoreCase))
                 continue;
 
             var fileCSharp = new FileInfo(Regex.Replace(fileResx.FullName, @".resx$", ".Designer.cs", RegexOptions.IgnoreCase));
-            
-            var fileResxContent = File.ReadAllText(fileResx.FullName, Encoding.UTF8);
-            var fileCSharpContent = fileCSharp.Exists ? File.ReadAllLines(fileCSharp.FullName, Encoding.UTF8) : new string[0];
+
+            var fileResxContent = File.ReadAllText(fileResx.FullName, DetermineEncoding(fileResx.FullName));
+            var fileCSharpContent = fileCSharp.Exists ? File.ReadAllLines(fileCSharp.FullName, DetermineEncoding(fileCSharp.FullName)) : new string[0];
 
             fileCSharpContent = SortCSharp(fileCSharpContent);
             fileResxContent = SortResx(fileResxContent);
 
             try
             {
-                File.WriteAllText(fileResx.FullName, fileResxContent, Encoding.UTF8);
-                File.WriteAllLines(fileCSharp.FullName, fileCSharpContent, Encoding.UTF8);
+                File.WriteAllText(fileResx.FullName, fileResxContent, DetermineEncoding(fileResx.FullName));
+                if (fileCSharp.Exists)
+                    File.WriteAllLines(fileCSharp.FullName, fileCSharpContent, DetermineEncoding(fileCSharp.FullName));
             }
+
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
         }
+    }
+
+    private static Encoding DetermineEncoding(string filePath)
+    {
+        var fileBytes = File.ReadAllBytes(filePath);
+
+        if (fileBytes.Length >= 4 &&
+            fileBytes[0] == 0x00 &&
+            fileBytes[1] == 0x00 &&
+            fileBytes[2] == 0xFE &&
+            fileBytes[3] == 0xFF)
+        {
+            return new UTF32Encoding(true, true);
+        }
+
+        if (fileBytes.Length >= 4 &&
+            fileBytes[0] == 0xFF &&
+            fileBytes[1] == 0xFE &&
+            fileBytes[2] == 0x00 &&
+            fileBytes[3] == 0x00)
+        {
+            return new UTF32Encoding(false, true);
+        }
+
+        if (fileBytes.Length >= 2 &&
+            fileBytes[0] == 0xFE &&
+            fileBytes[1] == 0xFF)
+        {
+            return new UnicodeEncoding(true, true);
+        }
+
+        if (fileBytes.Length >= 2 &&
+            fileBytes[0] == 0xFF &&
+            fileBytes[1] == 0xFE)
+        {
+            return new UnicodeEncoding(false, true);
+        }
+
+        if (fileBytes.Length >= 3 &&
+            fileBytes[0] == 0xEF &&
+            fileBytes[1] == 0xBB &&
+            fileBytes[2] == 0xBF)
+        {
+            return new UTF8Encoding(true);
+        }
+
+        return new UTF8Encoding(false);
     }
 
     private enum Mode
@@ -45,7 +94,7 @@ class Program
     private static string[] SortCSharp(string[] lines)
     {
         var header = new List<string>();
-        var body = new List<List<string>>(); 
+        var body = new List<List<string>>();
         var footer = new List<string>();
 
         var mode = Mode.Header;
@@ -63,7 +112,7 @@ class Program
                     else
                     {
                         body.Add(new List<string>());
-                        
+
                         while (header[header.Count - 1].Trim() != "}")
                         {
                             body[body.Count - 1].Insert(0, header[header.Count - 1]);
@@ -73,7 +122,7 @@ class Program
                         mode = Mode.Body;
                         goto case Mode.Body;
                     }
-                    
+
                     break;
                 case Mode.Body:
                     if (line.Trim() == "}") i++;
@@ -87,14 +136,14 @@ class Program
                     {
                         body.Add(new List<string>());
                     }
-                    
+
                     if (i > 2)
                     {
                         body.RemoveAt(body.Count - 1);
                         mode = Mode.Footer;
                         goto case Mode.Footer;
                     }
-                    
+
                     break;
                 case Mode.Footer:
                     footer.Add(line);
@@ -147,7 +196,7 @@ class Program
         body.Sort((list1, list2) =>
         {
             const string regex = @"((?<=public\s*static\s*string\s*)[^ ]*(?=\s*{)|(?<=name="")[^""]*)";
-            
+
             var text1 = string.Join(Environment.NewLine, list1.ToArray());
             var text2 = string.Join(Environment.NewLine, list2.ToArray());
 
