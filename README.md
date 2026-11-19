@@ -1,6 +1,6 @@
-# App.SortResourceKeys
+# SortResourceKeys
+This short C# code is used to create an application that internally sorts the keys within .resx resource files in the current directory.
 
-Este breve código C# serve para gerar um aplicativo que ordena internamente as chaves dos arquivos de recursos .resx.
+Windows comes with a built-in C# compiler. To generate the application, use the command below, invoking the C# compiler (csc.exe) and passing the source code file, Program.cs, as a parameter.
 
-Nativamente o Windows já vem com um compilador C#. Para gerar o aplicativo use o comando abaixo, chamando o compilador C# `csc.exe` passando como parâmetro o código fonte no arquivo `Program.cs`:
-- `C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe Program.cs`
+- `%windir%\Microsoft.NET\Framework\v4.0.30319\csc.exe /out:SortResourceKeys.exe /target:exe Program.cs`
