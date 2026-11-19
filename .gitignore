@@ -1,0 +1,10 @@
+*/obj/**
+*/bin/Release/**
+*/bin/Debug/**
+*/bin/*.zip
+**/.vs/**
+Backup/**
+*.csv
+*.exe
+*.user
+*.suo
